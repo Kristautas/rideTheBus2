@@ -20,9 +20,11 @@ public class RideTheBusGame extends Game {
     public void create() {
         batch = new SpriteBatch();
         font = new BitmapFont();
-        assetHandler = new AssetHandler(); // Initialize assetHandler in create()
-        assetHandler.finishLoading(); // Ensure assets are loaded before starting
-        setScreen(new GameScreen(this, new GameManager())); // Set initial screen
+        assetHandler = new AssetHandler();
+        assetHandler.finishLoading();
+        assetHandler.initializeSkin();
+        setScreen(new GameScreen(this, new GameManager(assetHandler)));
+
     }
 
     public void dispose() {

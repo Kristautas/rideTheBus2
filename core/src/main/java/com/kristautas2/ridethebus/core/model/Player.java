@@ -10,12 +10,13 @@ public class Player {
         this.totalWinnings = 0;
     }
 
-    public void placeBet(int amount) throws IllegalArgumentException {
+    public void placeBet(int amount)  {
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be greater than 0");
         }
         if (amount > balance) {
-            throw new IllegalArgumentException("Insufficient balance");
+            System.out.println("Not enough money");
+            //throw new IllegalArgumentException("Insufficient balance");
         }
         balance -= amount;
         currentBet = amount;
@@ -33,13 +34,17 @@ public class Player {
         return totalWinnings;
     }
 
-    public void addWinnings(int amount) {
+    public void addWinningsToBalance() {
+        balance += totalWinnings; // Add winnings to balance
+    }
+
+    public void addWinnings(int amount){
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be greater than 0");
         }
-        totalWinnings += amount;
-        balance += amount; // Add winnings to balance
+        totalWinnings = amount;
     }
+
     public void reset() {
         currentBet = 0;
         totalWinnings = 0;

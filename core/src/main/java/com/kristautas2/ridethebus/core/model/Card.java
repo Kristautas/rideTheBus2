@@ -35,10 +35,10 @@ public class Card {
 
     public Object getCardColor() {
         switch (cardSuit) {
-            case "hearts": return 0.5f;
-            case "diamonds": return 0.2f;
-            case "clubs": return 0.7f;
-            case "spades": return 1f;
+            case "hearts": return "red";
+            case "diamonds": return "red";
+            case "clubs": return "black";
+            case "spades": return "black";
             default: return 0.5f;
         }
     }
