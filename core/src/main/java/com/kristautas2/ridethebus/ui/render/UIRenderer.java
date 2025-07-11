@@ -31,15 +31,21 @@ public class UIRenderer {
 
     public void renderUI(Table table, GameManager.GameState state, GameManager.OpenCards openCards) {
         table.clearChildren();
+        table.setPosition(0, 0);
+        table.setSize(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT);
         table.center();
 
-        table.add(createStatusLabel(state)).center().minWidth(200f).pad(GameConfig.TABLE_PADDING).row();
+        Label statusLabel = createStatusLabel(state);
+        statusLabel.setPosition(GameConfig.STATUS_POS_X, GameConfig.STATUS_POS_Y);
+        table.addActor(statusLabel);
+
 
         Table infoTable = new Table();
-        infoTable.add(createWinningsLabel(gameManager.getPlayer())).center().minWidth(200f).pad(GameConfig.TABLE_PADDING);
-        infoTable.add(createBalanceLabel(gameManager.getPlayer())).center().minWidth(200f).pad(GameConfig.TABLE_PADDING);
-        table.add(infoTable);
-        table.row();
+        infoTable.add(createWinningsLabel(gameManager.getPlayer())).minWidth(200f).pad(GameConfig.TABLE_PADDING);
+        infoTable.add(createBetLabel(gameManager.getPlayer().getCurrentBet())).minWidth(120f).pad(GameConfig.TABLE_PADDING);
+        infoTable.add(createBalanceLabel(gameManager.getPlayer())).minWidth(200f).pad(GameConfig.TABLE_PADDING);
+        infoTable.setPosition(GameConfig.INFO_POS_X, GameConfig.INFO_POS_Y);
+        table.addActor(infoTable);
 
         // Render state-specific UI
         switch (state) {
@@ -70,6 +76,8 @@ public class UIRenderer {
     }
 
 
+
+
     public Label createStatusLabel(GameManager.GameState state) {
         switch (state) {
             case START: return new Label("  Welcome to Ride the Bus! Press Start to begin.  ", skin);
@@ -78,6 +86,7 @@ public class UIRenderer {
             case GUESS_HIGHER_LOWER: return new Label("Will the next card be Higher or Lower?", skin);
             case GUESS_INSIDE_OUTSIDE: return new Label("Will the next card be Inside or Outside the range?", skin);
             case GUESS_SUIT: return new Label("Guess the suit of the next card!", skin);
+            case GAME_WON: return new Label("Congratulations!!! You just won $" + gameManager.getPlayer().getTotalWinnings(), skin);
             case GAME_OVER: return new Label("Game Over! Play Again?", skin);
             default: return new Label("Unknown state", skin);
         }
@@ -87,13 +96,20 @@ public class UIRenderer {
         return new Label("  Winnings: $" + player.getTotalWinnings() + "  ", skin);
     }
 
+    private Actor createBetLabel(int currentBet) {
+        return new Label(" Bet: " + gameManager.getPlayer().getCurrentBet() + " ", skin);
+    }
+
     public Label createBalanceLabel(Player player) {
         return new Label("  Balance: $" + player.getBalance() + "  ", skin);
     }
 
     private void addStartButton(Table table) {
         TextButton startButton = new TextButton("Start", skin);
-        startButton.setSize(GameConfig.BUTTON_WIDTH, GameConfig.BUTTON_HEIGHT);
+        startButton.setSize(GameConfig.BUTTON_WIDTH + 80, GameConfig.BUTTON_HEIGHT);
+        startButton.setPosition(
+            GameConfig.BUTTON_POS_X - (GameConfig.BUTTON_WIDTH + 80) / 2,
+            GameConfig.BUTTON_POS_Y - GameConfig.BUTTON_HEIGHT / 2);
         startButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -101,7 +117,7 @@ public class UIRenderer {
                 updateUICallback.run();
             }
         });
-        table.add(startButton).pad(GameConfig.TABLE_PADDING).row();
+        table.addActor(startButton);
     }
 
     private void addBettingControls(Table table) {
@@ -110,22 +126,31 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
 
         for (int i = 0; i < 4; i++) {
             Image cardImage = new Image(gameManager.getCardBackTexture());
-            cardImage.setScaling(Scaling.fit); // Preserve aspect ratio
-            cardImage.setSize(cardWidth, cardHeight); // Apply fixed size
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImage.setScaling(Scaling.fit);
+            cardImage.setSize(cardWidth, cardHeight);
+            cardImage.setPosition(GameConfig.CARD_POS_X[i], 0);
+            // EDIT: Log card position for debugging
+            System.out.println("Betting card " + i + " position: (" + GameConfig.CARD_POS_X[i] + ", 0)");
+            cardTable.addActor(cardImage);
         }
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        table.addActor(cardTable);
 
-
-        final TextField betField = new TextField("10", skin);
+        final TextField betField = new TextField(gameManager.getPlayer().defaultBet, skin);
         betField.setSize(GameConfig.BUTTON_WIDTH, GameConfig.BUTTON_HEIGHT);
+        betField.setPosition(
+            GameConfig.BUTTON_POS_X - GameConfig.BUTTON_WIDTH / 2,
+            GameConfig.BUTTON_POS_Y + GameConfig.BUTTON_HEIGHT + GameConfig.TABLE_PADDING - GameConfig.BUTTON_HEIGHT / 2
+        );
         TextButton betButton = new TextButton("Bet", skin);
         betButton.setSize(GameConfig.BUTTON_WIDTH, GameConfig.BUTTON_HEIGHT);
+        betButton.setPosition(
+            GameConfig.BUTTON_POS_X - GameConfig.BUTTON_WIDTH / 2,
+            GameConfig.BUTTON_POS_Y - GameConfig.BUTTON_HEIGHT / 2
+        );
         betButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -136,15 +161,22 @@ public class UIRenderer {
                 } catch (IllegalArgumentException e) {
                     Label statusLabel = createStatusLabel(gameManager.getCurrentState());
                     statusLabel.setText(e.getMessage());
+                    statusLabel.setPosition(GameConfig.STATUS_POS_X, GameConfig.STATUS_POS_Y);
                     table.clearChildren();
-                    table.add(statusLabel).pad(GameConfig.TABLE_PADDING).row();
-                    table.add(betField).pad(GameConfig.TABLE_PADDING).row();
-                    table.add(betButton).pad(GameConfig.TABLE_PADDING).row();
+                    table.addActor(statusLabel);
+                    table.addActor(betField);
+                    table.addActor(betButton);
+                    Table infoTable = new Table();
+                    infoTable.add(createWinningsLabel(gameManager.getPlayer())).minWidth(200f).pad(GameConfig.TABLE_PADDING);
+                    infoTable.add(createBetLabel(gameManager.getPlayer().getCurrentBet())).minWidth(20f).pad(GameConfig.TABLE_PADDING);
+                    infoTable.add(createBalanceLabel(gameManager.getPlayer())).minWidth(200f).pad(GameConfig.TABLE_PADDING);
+                    infoTable.setPosition(GameConfig.INFO_POS_X, GameConfig.INFO_POS_Y);
+                    table.addActor(infoTable);
                 }
             }
         });
-        table.add(betField).pad(GameConfig.TABLE_PADDING).row();
-        table.add(betButton).pad(GameConfig.TABLE_PADDING).row();
+        table.addActor(betField);
+        table.addActor(betButton);
     }
 
     /*
@@ -163,21 +195,22 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
 
         for (int i = 0; i < 4; i++) {
             Image cardImage = new Image(gameManager.getCardBackTexture());
-            cardImage.setScaling(Scaling.fit); // Preserve aspect ratio
-            cardImage.setSize(cardWidth, cardHeight); // Apply fixed size
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImage.setScaling(Scaling.fit);
+            cardImage.setSize(cardWidth, cardHeight);
+            cardImage.setPosition(GameConfig.CARD_POS_X[i], 0);
+            // EDIT: Log card position for debugging
+            System.out.println("Color card " + i + " position: (" + GameConfig.CARD_POS_X[i] + ", 0)");
+            cardTable.addActor(cardImage);
         }
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        table.addActor(cardTable);
 
         Table buttonTable = new Table();
         TextButton redButton = new TextButton("Red", skin);
         TextButton blackButton = new TextButton("Black", skin);
-        TextButton collectWinnings = new TextButton("Collect Winnings", skin);
         redButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -196,20 +229,14 @@ public class UIRenderer {
                 updateUICallback.run();
             }
         });
-        collectWinnings.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                System.out.println("Winnings collected");
-                gameManager.collectWinnings();
-                updateUICallback.run();
-            }
-        });
-        buttonTable.add(redButton).pad(GameConfig.TABLE_PADDING).minWidth(100f).uniform();
-        buttonTable.add(blackButton).pad(GameConfig.TABLE_PADDING).minWidth(100f).uniform();
-        buttonTable.row();
-        buttonTable.add(collectWinnings).pad(GameConfig.TABLE_PADDING).colspan(2);
-        table.add(buttonTable).pad(GameConfig.TABLE_PADDING).row();
-        System.out.println(table.getCells());
+        buttonTable.add(redButton).minWidth(100f).pad(GameConfig.TABLE_PADDING);
+        buttonTable.add(blackButton).minWidth(100f).pad(GameConfig.TABLE_PADDING);
+        buttonTable.pack();
+        buttonTable.setPosition(
+            GameConfig.BUTTON_POS_X - buttonTable.getWidth() / 2,
+            GameConfig.BUTTON_POS_Y - buttonTable.getHeight() / 2
+        );
+        table.addActor(buttonTable);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -221,22 +248,22 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
 
         Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(0)));
         cardImageUp.setScaling(Scaling.fit);
         cardImageUp.setSize(cardWidth, cardHeight);
-        cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+        cardImageUp.setPosition(GameConfig.CARD_POS_X[0], 0);
+        cardTable.addActor(cardImageUp);
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 1; i < 4; i++) {
             Image cardImage = new Image(gameManager.getCardBackTexture());
             cardImage.setScaling(Scaling.fit);
             cardImage.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImage.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImage);
         }
-        // EDIT: Center the card table in the main table
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        table.addActor(cardTable);
 
         //=============================
 
@@ -266,12 +293,17 @@ public class UIRenderer {
                 updateUICallback.run();
             }
         });
-        buttonTable.add(lowerButton).pad(GameConfig.TABLE_PADDING).minWidth(100f).uniform();
-        buttonTable.add(higherButton).pad(GameConfig.TABLE_PADDING).minWidth(100f).uniform();
+        buttonTable.add(lowerButton).minWidth(100f).pad(GameConfig.TABLE_PADDING);
+        buttonTable.add(higherButton).minWidth(100f).pad(GameConfig.TABLE_PADDING);
         buttonTable.row();
-        buttonTable.add(collectWinnings).pad(GameConfig.TABLE_PADDING).colspan(2);
-        table.add(buttonTable).pad(GameConfig.TABLE_PADDING).row();
-        System.out.println(table.getCells());
+        buttonTable.add(collectWinnings).colspan(2).pad(GameConfig.TABLE_PADDING);
+        // EDIT: [NEW] Finalize buttonTable layout and center it
+        buttonTable.pack();
+        buttonTable.setPosition(
+            GameConfig.BUTTON_POS_X - buttonTable.getWidth() / 2,
+            GameConfig.BUTTON_POS_Y - buttonTable.getHeight() / 2
+        );
+        table.addActor(buttonTable);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -283,24 +315,24 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
 
-        for (int i = 0; i < 2; i++){
+        for (int i = 0; i < 2; i++) {
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
             cardImageUp.setScaling(Scaling.fit);
             cardImageUp.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImageUp.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImageUp);
         }
-
-        for (int i = 0; i < 2; i++) {
+        // EDIT: Use absolute positioning for card backs
+        for (int i = 2; i < 4; i++) {
             Image cardImage = new Image(gameManager.getCardBackTexture());
             cardImage.setScaling(Scaling.fit);
             cardImage.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImage.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImage);
         }
-
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        table.addActor(cardTable);
 
         //=============================
 
@@ -330,12 +362,17 @@ public class UIRenderer {
                 updateUICallback.run();
             }
         });
-        buttonTable.add(insideButton).pad(GameConfig.TABLE_PADDING).minWidth(100f).uniform();
-        buttonTable.add(outsideButton).pad(GameConfig.TABLE_PADDING).minWidth(100f).uniform();
+        buttonTable.add(insideButton).minWidth(100f).pad(GameConfig.TABLE_PADDING);
+        buttonTable.add(outsideButton).minWidth(100f).pad(GameConfig.TABLE_PADDING);
         buttonTable.row();
-        buttonTable.add(collectWinnings).pad(GameConfig.TABLE_PADDING).colspan(2);
-        table.add(buttonTable).pad(GameConfig.TABLE_PADDING).row();
-        System.out.println(table.getCells());
+        buttonTable.add(collectWinnings).colspan(2).pad(GameConfig.TABLE_PADDING);
+        // EDIT: [NEW] Finalize buttonTable layout and center it
+        buttonTable.pack();
+        buttonTable.setPosition(
+            GameConfig.BUTTON_POS_X - buttonTable.getWidth() / 2,
+            GameConfig.BUTTON_POS_Y - buttonTable.getHeight() / 2
+        );
+        table.addActor(buttonTable);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -347,26 +384,28 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
 
-        for (int i = 0; i < 3; i++){
+        for (int i = 0; i < 3; i++) {
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
             cardImageUp.setScaling(Scaling.fit);
             cardImageUp.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImageUp.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImageUp);
         }
-
-            Image cardImage = new Image(gameManager.getCardBackTexture());
-            cardImage.setScaling(Scaling.fit);
-            cardImage.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
-
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        // EDIT: Use absolute positioning for card back
+        Image cardImage = new Image(gameManager.getCardBackTexture());
+        cardImage.setScaling(Scaling.fit);
+        cardImage.setSize(cardWidth, cardHeight);
+        cardImage.setPosition(GameConfig.CARD_POS_X[3], 0);
+        cardTable.addActor(cardImage);
+        table.addActor(cardTable);
 
         //=============================
 
         Table buttonTable = new Table();
+        buttonTable.setPosition(GameConfig.BUTTON_POS_X, GameConfig.BUTTON_POS_Y);
+
         for (String suit : Deck.SUITS) {
             TextButton suitButton = new TextButton(suit, skin);
             suitButton.addListener(new ChangeListener() {
@@ -376,7 +415,7 @@ public class UIRenderer {
                     updateUICallback.run();
                 }
             });
-            buttonTable.add(suitButton).pad(GameConfig.TABLE_PADDING).minWidth(100f).uniform();
+            buttonTable.add(suitButton).minWidth(100f).pad(GameConfig.TABLE_PADDING);
         }
         buttonTable.row();
         TextButton collectWinnings = new TextButton("Collect Winnings", skin);
@@ -387,9 +426,8 @@ public class UIRenderer {
                 updateUICallback.run();
             }
         });
-
-        buttonTable.add(collectWinnings).pad(GameConfig.TABLE_PADDING).colspan(4);
-        table.add(buttonTable);
+        buttonTable.add(collectWinnings).colspan(4).pad(GameConfig.TABLE_PADDING);
+        table.addActor(buttonTable);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -401,16 +439,16 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
 
-        for (int i = 0; i < 4; i++){
+        for (int i = 0; i < 4; i++) {
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
             cardImageUp.setScaling(Scaling.fit);
             cardImageUp.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImageUp.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImageUp);
         }
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        table.addActor(cardTable);
     }
 
     /*  ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██╗   ██╗███████╗██████╗
@@ -422,7 +460,6 @@ public class UIRenderer {
     */
 
     private void addGameOverControls(Table table, GameManager.OpenCards openCards) {
-
         switch (openCards){
             case ONE: showOneCard(table);
             break;
@@ -442,19 +479,20 @@ public class UIRenderer {
                 updateUICallback.run();
             }
         });
-        table.add(newGameButton).minWidth(100f).uniform().row();
+        table.addActor(newGameButton);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
 
-   void showOneCard(Table table){
+    void showOneCard(Table table){
         float[] cardSize = getCardSize();
         float cardWidth = cardSize[0];
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
+
         System.out.println("Game Over showing 1 card");
         Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(0)));
         cardImageUp.setScaling(Scaling.fit);
@@ -465,11 +503,9 @@ public class UIRenderer {
             Image cardImage = new Image(gameManager.getCardBackTexture());
             cardImage.setScaling(Scaling.fit);
             cardImage.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImage.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImage);
         }
-        // EDIT: Center the card table in the main table
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -481,7 +517,7 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
         System.out.println("Game Over showing 2 cards");
         for (int i = 0; i < 2; i++){
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
@@ -510,7 +546,7 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
         System.out.println("Game Over showing 3 cards");
         for (int i = 0; i < 3; i++) {
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
@@ -518,15 +554,14 @@ public class UIRenderer {
             cardImageUp.setSize(cardWidth, cardHeight);
             cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
         }
-            Image cardImage = new Image(gameManager.getCardBackTexture());
-            cardImage.setScaling(Scaling.fit);
-            cardImage.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+        Image cardImage = new Image(gameManager.getCardBackTexture());
+        cardImage.setScaling(Scaling.fit);
+        cardImage.setSize(cardWidth, cardHeight);
+        cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
 
-            table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-            table.row();
+        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
+        table.row();
     }
-
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
 
@@ -536,7 +571,7 @@ public class UIRenderer {
         float cardHeight = cardSize[1];
 
         Table cardTable = new Table();
-        cardTable.center();
+        cardTable.setPosition(0, GameConfig.CARD_POS_Y);
         System.out.println("Game Over showing 4 cards");
         for (int i = 0; i < 4; i++){
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));

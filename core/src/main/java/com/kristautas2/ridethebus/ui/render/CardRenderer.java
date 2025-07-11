@@ -27,9 +27,10 @@ public class CardRenderer {
         }
         table.clearChildren();
         System.out.println("Rendering " + cards.size() + " cards"); // Debug log
-        for (Card card : cards) {
-            System.out.println("Attempting to render card: " + card.getCardName()); // Debug log
-            System.out.println("Card image path: " + card.getImagePath()); // Debug log
+        for (int i = 0; i < cards.size(); i++) {
+            Card card = cards.get(i);
+            System.out.println("Attempting to render card: " + card.getCardName());
+            System.out.println("Card image path: " + card.getImagePath());
             Texture texture = assetHandler.getCardTexture(card);
             if (texture == null) {
                 System.out.println("Warning: Texture is null for card " + card.getCardName());
@@ -40,9 +41,11 @@ public class CardRenderer {
 
             Image cardImage = new Image(texture);
             cardImage.setSize(GameConfig.CARD_WIDTH, GameConfig.CARD_HEIGHT);
-            System.out.println("Card image size set to: " + GameConfig.CARD_WIDTH + "x" + GameConfig.CARD_HEIGHT);
+            // Set absolute position using GameConfig
+            cardImage.setPosition(GameConfig.CARD_POS_X[i], GameConfig.CARD_POS_Y);
+            System.out.println("Card positioned at: (" + GameConfig.CARD_POS_X[i] + ", " + GameConfig.CARD_POS_Y + ")");
 
-            table.add(cardImage).pad(GameConfig.CARD_SPACING);
+            table.addActor(cardImage); // Add to table without layout constraints
         }
         table.row();
     }

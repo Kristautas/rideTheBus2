@@ -15,6 +15,15 @@ public class GameConfig {
     public static final float BUTTON_HEIGHT = 40f; // Added: Fixed height for UI buttons
     public static final float TABLE_PADDING = 10f;
     public static final float[] BACKGROUND_COLOR = {0.2f, 0.5f, 0.2f, 1f}; // RGBA for green background
+    public static final float[] CARD_POS_X = {140f, 280f, 420f, 560f}; // Example x-positions
+    public static final float CARD_POS_Y = 150f; // Example y-position (adjust as needed)
+
+    public static final float STATUS_POS_X = 110f; // Center of screen
+    public static final float STATUS_POS_Y = 400f; // Near top
+    public static final float INFO_POS_X = 400f; // Center
+    public static final float INFO_POS_Y = 350f; // Below status
+    public static final float BUTTON_POS_X = 400f; // Center
+    public static final float BUTTON_POS_Y = 50f; // Below cards
 
     public static final Map<GameManager.GameState, Integer> PAYOUT_MULTIPLIERS = Map.of(
         GameManager.GameState.GUESS_COLOR, 2,

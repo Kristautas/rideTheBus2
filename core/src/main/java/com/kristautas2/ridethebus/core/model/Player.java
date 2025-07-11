@@ -1,6 +1,7 @@
 package com.kristautas2.ridethebus.core.model;
 
 public class Player {
+    public String defaultBet = "10";
     private int balance = 100; // New: Track available funds
     private int currentBet;
     private int totalWinnings;
@@ -11,6 +12,7 @@ public class Player {
     }
 
     public void placeBet(int amount)  {
+        defaultBet = Integer.toString(amount);
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be greater than 0");
         }
