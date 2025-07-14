@@ -23,7 +23,7 @@ public class GameConfig {
     public static final float INFO_POS_X = 400f; // Center
     public static final float INFO_POS_Y = 350f; // Below status
     public static final float BUTTON_POS_X = 400f; // Center
-    public static final float BUTTON_POS_Y = 50f; // Below cards
+    public static final float BUTTON_POS_Y = 70f; // Below cards
 
     public static final Map<GameManager.GameState, Integer> PAYOUT_MULTIPLIERS = Map.of(
         GameManager.GameState.GUESS_COLOR, 2,

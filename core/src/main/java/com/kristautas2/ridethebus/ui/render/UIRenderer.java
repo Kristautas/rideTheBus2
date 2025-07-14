@@ -471,15 +471,19 @@ public class UIRenderer {
             break;
         }
 
-        TextButton newGameButton = new TextButton("Play Again", skin);
-        newGameButton.addListener(new ChangeListener() {
+        TextButton startButton = new TextButton("Play Again", skin);
+        startButton.setSize(GameConfig.BUTTON_WIDTH + 80, GameConfig.BUTTON_HEIGHT);
+        startButton.setPosition(
+            GameConfig.BUTTON_POS_X - (GameConfig.BUTTON_WIDTH + 80) / 2,
+            GameConfig.BUTTON_POS_Y - GameConfig.BUTTON_HEIGHT / 2);
+        startButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 gameManager.startGame();
                 updateUICallback.run();
             }
         });
-        table.addActor(newGameButton);
+        table.addActor(startButton);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -493,19 +497,20 @@ public class UIRenderer {
         Table cardTable = new Table();
         cardTable.setPosition(0, GameConfig.CARD_POS_Y);
 
-        System.out.println("Game Over showing 1 card");
         Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(0)));
         cardImageUp.setScaling(Scaling.fit);
         cardImageUp.setSize(cardWidth, cardHeight);
-        cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+        cardImageUp.setPosition(GameConfig.CARD_POS_X[0], 0);
+        cardTable.addActor(cardImageUp);
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 1; i < 4; i++) {
             Image cardImage = new Image(gameManager.getCardBackTexture());
             cardImage.setScaling(Scaling.fit);
             cardImage.setSize(cardWidth, cardHeight);
             cardImage.setPosition(GameConfig.CARD_POS_X[i], 0);
             cardTable.addActor(cardImage);
         }
+        table.addActor(cardTable);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -518,23 +523,23 @@ public class UIRenderer {
 
         Table cardTable = new Table();
         cardTable.setPosition(0, GameConfig.CARD_POS_Y);
-        System.out.println("Game Over showing 2 cards");
-        for (int i = 0; i < 2; i++){
+
+        for (int i = 0; i < 2; i++) {
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
             cardImageUp.setScaling(Scaling.fit);
             cardImageUp.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImageUp.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImageUp);
         }
-
-        for (int i = 0; i < 2; i++) {
+        // EDIT: Use absolute positioning for card backs
+        for (int i = 2; i < 4; i++) {
             Image cardImage = new Image(gameManager.getCardBackTexture());
             cardImage.setScaling(Scaling.fit);
             cardImage.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImage.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImage);
         }
-
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        table.addActor(cardTable);
     }
 
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -547,20 +552,21 @@ public class UIRenderer {
 
         Table cardTable = new Table();
         cardTable.setPosition(0, GameConfig.CARD_POS_Y);
-        System.out.println("Game Over showing 3 cards");
+
         for (int i = 0; i < 3; i++) {
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
             cardImageUp.setScaling(Scaling.fit);
             cardImageUp.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImageUp.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImageUp);
         }
+        // EDIT: Use absolute positioning for card back
         Image cardImage = new Image(gameManager.getCardBackTexture());
         cardImage.setScaling(Scaling.fit);
         cardImage.setSize(cardWidth, cardHeight);
-        cardTable.add(cardImage).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
-
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        cardImage.setPosition(GameConfig.CARD_POS_X[3], 0);
+        cardTable.addActor(cardImage);
+        table.addActor(cardTable);
     }
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
     //═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═★═
@@ -572,15 +578,15 @@ public class UIRenderer {
 
         Table cardTable = new Table();
         cardTable.setPosition(0, GameConfig.CARD_POS_Y);
-        System.out.println("Game Over showing 4 cards");
-        for (int i = 0; i < 4; i++){
+
+        for (int i = 0; i < 4; i++) {
             Image cardImageUp = new Image(gameManager.getCardTexture(gameManager.getDealtCards().get(i)));
             cardImageUp.setScaling(Scaling.fit);
             cardImageUp.setSize(cardWidth, cardHeight);
-            cardTable.add(cardImageUp).size(cardWidth, cardHeight).pad(GameConfig.CARD_GAP);
+            cardImageUp.setPosition(GameConfig.CARD_POS_X[i], 0);
+            cardTable.addActor(cardImageUp);
         }
-        table.add(cardTable).center().pad(GameConfig.TABLE_PADDING).row(); // Modified: Added center() for table alignment
-        table.row();
+        table.addActor(cardTable);
     }
 
     public void dispose() {
