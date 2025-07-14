@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: com.kristautas2.ridethebus.lwjgl3.Lwjgl3Launcher
+

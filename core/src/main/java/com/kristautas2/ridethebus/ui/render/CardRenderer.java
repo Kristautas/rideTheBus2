@@ -40,10 +40,10 @@ public class CardRenderer {
             System.out.println("Texture loaded successfully: " + texture.getWidth() + "x" + texture.getHeight());
 
             Image cardImage = new Image(texture);
-            cardImage.setSize(GameConfig.CARD_WIDTH, GameConfig.CARD_HEIGHT);
+            cardImage.setSize(GameConfig.getCardWidth(), GameConfig.getCardHeight());
             // Set absolute position using GameConfig
-            cardImage.setPosition(GameConfig.CARD_POS_X[i], GameConfig.CARD_POS_Y);
-            System.out.println("Card positioned at: (" + GameConfig.CARD_POS_X[i] + ", " + GameConfig.CARD_POS_Y + ")");
+            cardImage.setPosition(GameConfig.getCardPosX(i), GameConfig.getCardPosY());
+            System.out.println("Card positioned at: (" + GameConfig.getCardPosX(i) + ", " + GameConfig.getCardPosY() + ")");
 
             table.addActor(cardImage); // Add to table without layout constraints
         }

@@ -11,6 +11,11 @@ import com.kristautas2.ridethebus.core.model.Player;
 import com.kristautas2.ridethebus.ui.screen.GameScreen;
 import com.kristautas2.ridethebus.util.AssetHandler;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
 public class RideTheBusGame extends Game {
     private SpriteBatch batch;
     private AssetHandler assetHandler;
@@ -24,7 +29,6 @@ public class RideTheBusGame extends Game {
         assetHandler.finishLoading();
         assetHandler.initializeSkin();
         setScreen(new GameScreen(this, new GameManager(assetHandler)));
-
     }
 
     public void dispose() {

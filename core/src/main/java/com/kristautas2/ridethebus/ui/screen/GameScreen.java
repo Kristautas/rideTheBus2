@@ -26,6 +26,7 @@ public class GameScreen implements Screen {
     private final Stage stage;
     private final Table mainTable;
     private final Image background;
+    private final StretchViewport viewport;
 
     public GameScreen(RideTheBusGame game, GameManager gameManager) {
         System.out.println("Creating GameScreen");
@@ -40,7 +41,8 @@ public class GameScreen implements Screen {
 
         // Set up stage
         OrthographicCamera camera = new OrthographicCamera();
-        stage = new Stage(new StretchViewport(GameConfig.SCREEN_WIDTH, GameConfig.SCREEN_HEIGHT, camera));
+        viewport = new StretchViewport(GameConfig.getScreenWidth(), GameConfig.getScreenHeight(), camera);
+        stage = new Stage(viewport);
         Gdx.input.setInputProcessor(stage);
 
         // FIX: Initialize background with full window size and validate texture
@@ -84,18 +86,51 @@ public class GameScreen implements Screen {
         stage.getCamera().viewportWidth = width; // Force camera to match window
         stage.getCamera().viewportHeight = height;
         stage.getCamera().update();
+
         background.setSize(width, height); // Stretch background to full window size
         background.setPosition(0, 0); // Reset position to top-left
+        updateUI();
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
+
+//        System.out.println("Resized to: " + width + "x" + height +
+//            ", Background size: " + background.getWidth() + "x" + background.getHeight() +
+//            ", Stage world size: " + viewport.getWorldWidth() + "x" + viewport.getWorldHeight() +
+//            ", Camera viewport: " + stage.getCamera().viewportWidth + "x" + stage.getCamera().viewportHeight);
+    }
+
+    /*
+        @Override
+    public void resize(int width, int height) {
+        // Update viewport with new dimensions
+        viewport.update(width, height, true); // Center the camera
+        stage.getCamera().viewportWidth = width;
+        stage.getCamera().viewportHeight = height;
+        stage.getCamera().update();
+
+        // Update background size to match new window dimensions
+        background.setSize(width, height);
+        background.setPosition(0, 0);
+
+        // Force UI update to recalculate positions and sizes
+        updateUI();
+
+        // Force stage to process layout and redraw
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
+
         System.out.println("Resized to: " + width + "x" + height +
             ", Background size: " + background.getWidth() + "x" + background.getHeight() +
             ", Stage world size: " + viewport.getWorldWidth() + "x" + viewport.getWorldHeight() +
             ", Camera viewport: " + stage.getCamera().viewportWidth + "x" + stage.getCamera().viewportHeight);
     }
 
+     */
+
     public void dispose() {
         stage.dispose();
         cardRenderer.dispose();
-        uiRenderer.dispose();
+        //uiRenderer.dispose();
     }
 
 
